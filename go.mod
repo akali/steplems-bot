@@ -1,4 +1,4 @@
-module github.com/suratu-io/curl-telegram-bot
+module github.com/akali/steplems-bot
 
 go 1.12
 
