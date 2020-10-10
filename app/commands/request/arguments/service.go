@@ -1,42 +1,42 @@
 package arguments
 
 import (
-    "errors"
-    "net/url"
-    "strings"
+	"errors"
+	"net/url"
+	"strings"
 )
 
 const (
-    schemaSeparator   = "://"
-    defaultSchema     = "https"
+	schemaSeparator = "://"
+	defaultSchema   = "https"
 )
 
 const (
-    urlNotProvidedErr = "url not provided"
+	urlNotProvidedErr = "url not provided"
 )
 
 // ParseArguments parses command message arguments to Arguments struct.
 func ParseArguments(args ...string) (*Arguments, error) {
-    if len(args) == 0 {
-        return nil, errors.New(urlNotProvidedErr)
-    }
+	if len(args) == 0 {
+		return nil, errors.New(urlNotProvidedErr)
+	}
 
-    arguments := NewArguments()
+	arguments := NewArguments()
 
-    rawURL := validateRawURL(args[0])
-    parsedURL, err := url.Parse(rawURL)
-    if err != nil {
-        return nil, err
-    }
-    arguments.URL = parsedURL
+	rawURL := validateRawURL(args[0])
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil {
+		return nil, err
+	}
+	arguments.URL = parsedURL
 
-    return arguments, nil
+	return arguments, nil
 }
 
 func validateRawURL(url string) string {
-    schemaEnd := strings.Index(url, schemaSeparator)
-    if schemaEnd < 0 {
-        return strings.Join([]string{defaultSchema, url}, schemaSeparator)
-    }
-    return url
+	schemaEnd := strings.Index(url, schemaSeparator)
+	if schemaEnd < 0 {
+		return strings.Join([]string{defaultSchema, url}, schemaSeparator)
+	}
+	return url
 }

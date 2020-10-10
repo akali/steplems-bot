@@ -1,7 +1,7 @@
 <h1 align="center">♥️ Welcome and thanks for contributing</h1>
 <p align="center">
     <strong>
-        First please read our <a href="https://github.com/suratu-io/curl-telegram-bot/blob/master/CODE_OF_CONDUCT.md">code of conduct</a> to proceed.
+        First please read our <a href="https://github.com/akali/steplems-bot/blob/master/CODE_OF_CONDUCT.md">code of conduct</a> to proceed.
     </strong>
 </p>
 
@@ -36,7 +36,7 @@ $ go get -u golang.org/x/lint/golint
 And then:
 
 ```sh
-$ git clone https://github.com/suratu-io/curl-telegram-bot
+$ git clone https://github.com/akali/steplems-bot
 $ cd curl-telegram-bot
 $ make bootstrap
 ```

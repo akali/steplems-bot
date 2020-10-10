@@ -1,5 +1,5 @@
-<h1 align="center">📃 CURL Telegram Bot</h1>
-<p align="center">Telegram bot for curl requests wherever you want</p>
+<h1 align="center"> 📃Steplems bot</h1>
+<p align="center"> Telegram bot for steplems</p>
 
 <h4 align="center">Build Status:</h4>
 
@@ -21,55 +21,31 @@
 <h4 align="center">Repository Status:</h4>
 
 <p align="center">
-    <a href="https://github.com/suratu-io/curl-telegram-bot/blob/master/LICENSE">
+    <a href="https://github.com/akali/steplems-bot/blob/master/LICENSE">
         <img
             src="https://img.shields.io/github/license/suratu-io/curl-telegram-bot.svg"
             alt="Curl Telegram Bot License"
         >
     </a>
-    <a href="https://github.com/suratu-io/curl-telegram-bot/releases">
+    <a href="https://github.com/akali/steplems-bot/releases">
         <img
             src="https://img.shields.io/github/tag/suratu-io/curl-telegram-bot.svg?label=release"
             alt="Curl Telegram Bot Release"
         >
     </a>
-    <a href="https://github.com/suratu-io/curl-telegram-bot/issues">
+    <a href="https://github.com/akali/steplems-bot/issues">
         <img
             src="https://img.shields.io/github/issues/suratu-io/curl-telegram-bot.svg"
             alt="Curl Telegram Bot Issues"
         >
     </a>
-    <a href="https://github.com/suratu-io/curl-telegram-bot/graphs/contributors">
+    <a href="https://github.com/akali/steplems-bot/graphs/contributors">
         <img
             src="https://img.shields.io/github/contributors/suratu-io/curl-telegram-bot.svg"
             alt="Curl Telegram Bot Contributors"
         >
     </a>
 </p>
-
-----
-
-<p align="center">
-    <strong><a href="#license">Usage</a></strong>
-    |
-    <strong><a href="#contributing">Contributing</a></strong>
-    |
-    <strong><a href="#license">License</a></strong>
-</p>
-
----
-
-<h2 id="usage">🔧 Usage</h2>
-
-***Simple request without body:***
-```rust
-/get api.github.com
-```
-
-***Output:***
-```go
-Status: 200 Ok
-```
 
 <h2 id="contributing">👬 Contributing</h2>
 
