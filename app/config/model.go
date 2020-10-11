@@ -11,6 +11,10 @@ const (
 	BotAPITokenEnv = "BOT_API_TOKEN"
 	// UpdateTimeoutEnv is env var key for UpdateTimeout.
 	UpdateTimeoutEnv = "UPDATE_TIMEOUT"
+	// MongoConnectionStringEnv is env var key for connection string to mongodb.
+	MongoConnectionStringEnv = "MONGO_CONNECTION_STRING"
+	// MongoDatabaseNameEnv is env var key for database name in mongodb.
+	MongoDatabaseNameEnv = "MONGO_DATABASE_NAME"
 )
 
 var (
@@ -20,6 +24,10 @@ var (
 	BotAPIToken = os.Getenv(BotAPITokenEnv)
 	// UpdateTimeout is a duration in seconds for bot api update chan timout.
 	UpdateTimeout = 60
+	// MongoConnectionString is connection string to mongodb.
+	MongoConnectionString = os.Getenv(MongoConnectionStringEnv)
+	// MongoDatabaseName is database name in mongodb.
+	MongoDatabaseName = os.Getenv(MongoDatabaseNameEnv)
 )
 
 func init() {
@@ -29,4 +37,7 @@ func init() {
 	} else {
 		UpdateTimeout = int(ut)
 	}
+
+	log.Info.Println("connecting with connection string: ", MongoConnectionString)
+	log.Info.Println("connecting with database name: ", MongoDatabaseName)
 }

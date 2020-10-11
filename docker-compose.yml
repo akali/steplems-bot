@@ -1,0 +1,15 @@
+version: "3.0"
+
+volumes:
+  mongodb:
+    driver: local
+
+services:
+  mongodb:
+    container_name: sutepuremu
+    image: mongo:latest
+    ports:
+      - 27019:27017
+    restart: always
+    volumes:
+      - .docker-data/devmongo:/app/devmongo/data/db
