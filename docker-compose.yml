@@ -14,7 +14,7 @@ services:
     env_file:
       - .env
     volumes:
-      - .docker-data/devmongo:/app/devmongo/data/db
+      - .docker-data/mongo:/data/db
   steplemsbot:
     container_name: steplemsbot
     build:
