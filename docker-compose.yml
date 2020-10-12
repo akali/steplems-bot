@@ -11,6 +11,8 @@ services:
     ports:
       - 27019:27017
     restart: always
+    env_file:
+      - .env
     volumes:
       - .docker-data/devmongo:/app/devmongo/data/db
   steplemsbot:
