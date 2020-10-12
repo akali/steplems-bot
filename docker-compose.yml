@@ -6,10 +6,19 @@ volumes:
 
 services:
   mongodb:
-    container_name: sutepuremu
+    container_name: sutepuremusu
     image: mongo:latest
     ports:
       - 27019:27017
     restart: always
     volumes:
       - .docker-data/devmongo:/app/devmongo/data/db
+  steplemsbot:
+    container_name: steplemsbot
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    env_file: .env
+    command: sh -c "/wait && /bin/steplemsbot"
+    depends_on:
+      - mongodb
