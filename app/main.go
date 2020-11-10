@@ -7,6 +7,7 @@ import (
 	"github.com/akali/steplems-bot/app/commands/request"
 	"github.com/akali/steplems-bot/app/config"
 	"github.com/akali/steplems-bot/app/logger"
+	"time"
 )
 
 var (
@@ -28,9 +29,15 @@ var (
 
 func main() {
 	// Creating and setting up a new bot api client.
-	b, err := bot.NewBot(config.BotAPIToken, cmds)
+	b, err := bot.NewBot(config.BotAPIToken, cmds, config.MongoConnectionString, config.MongoDatabaseName)
 	if err != nil {
 		log.Panic.Println("error trying to initialize a new bot:", err)
+	}
+
+	err, _ = b.Database.Init(time.Duration(config.UpdateTimeout))
+
+	if err != nil {
+		log.Panic.Println("error trying to connect to mongo:", err.Error())
 	}
 
 	// Run is going to loop a continues chan that will block

@@ -2,6 +2,7 @@ package bot
 
 import (
 	"github.com/akali/steplems-bot/app/commands"
+	"github.com/akali/steplems-bot/app/database"
 	"github.com/akali/steplems-bot/app/logger"
 	tbot "github.com/go-telegram-bot-api/telegram-bot-api"
 )
@@ -11,8 +12,10 @@ type (
 	// its functionality.
 	Bot struct {
 		RunBotRepo
+		RecordMessageRepo
 		api      *tbot.BotAPI
 		commands commands.CallbackMap
+		Database *database.Database
 	}
 )
 
@@ -21,11 +24,16 @@ var (
 )
 
 // NewBot initializes bot api and returns a new *Bot.
-func NewBot(token string, commands commands.CallbackMap) (*Bot, error) {
+func NewBot(token string, commands commands.CallbackMap, url string, databaseName string) (*Bot, error) {
 	api, err := tbot.NewBotAPI(token)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Bot{api: api, commands: commands}, nil
+	databaseConfig := &database.Database{
+		Url:      url,
+		Database: databaseName,
+	}
+
+	return &Bot{api: api, commands: commands, Database: databaseConfig}, nil
 }

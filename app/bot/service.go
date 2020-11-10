@@ -2,8 +2,10 @@ package bot
 
 import (
 	"fmt"
+
 	"github.com/akali/steplems-bot/app/commands"
 	"github.com/akali/steplems-bot/app/commands/help"
+	"github.com/akali/steplems-bot/app/database"
 	tbot "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
@@ -30,6 +32,20 @@ func (b *Bot) Run(timeout int) error {
 	return nil
 }
 
+func (b *Bot) Record(message *tbot.Message) error {
+	log.Info.PrintTKV("Recording message from {{from}}", "from", func() string {
+		if len(message.From.UserName) > 0 {
+			return message.From.UserName
+		} else {
+			return message.From.FirstName + " " + message.From.LastName
+		}
+	}())
+
+	return b.Database.SaveMessage(&database.Message{
+		Message: *message,
+	})
+}
+
 func (b *Bot) update(update tbot.Update) {
 	// Ignore any non-Message Updates.
 	if update.Message == nil {
@@ -42,17 +58,22 @@ func (b *Bot) update(update tbot.Update) {
 		"text", update.Message.Text,
 	)
 
+	// Record the message
+	if err := b.Record(update.Message); err != nil {
+		log.Error.Println("unexpected error!", err.Error())
+	}
+
 	if name := update.Message.CommandWithAt(); len(name) > 0 {
 		commandName := commands.Name(name)
-		callback, ok := b.commands.Get(commandName)
+
 		// Sending help message if the command by the given name wasn't found.
-		if !ok {
+		if callback, ok := b.commands.Get(commandName); !ok {
 			log.Warn.PrintT("command '{}' not found", commandName)
 			b.executeCommand(update, help.CommandCallback, help.CommandName)
 			return
+		} else {
+			b.executeCommand(update, callback, commandName)
 		}
-
-		b.executeCommand(update, callback, commandName)
 	}
 }
 
