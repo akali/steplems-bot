@@ -52,12 +52,10 @@ func (b *Bot) update(update tbot.Update) {
 		return
 	}
 
-	log.Info.PrintTKV("[{{update_id}}] {{username}}: {{text}} | {{doc}} | {{photo}}",
+	log.Info.PrintTKV("[{{update_id}}] {{username}}: {{text}}",
 		"update_id", update.UpdateID,
 		"username", update.Message.From.UserName,
 		"text", update.Message.Text,
-		"doc", update.Message.Document,
-		"photo", update.Message.Photo,
 	)
 
 	// Record the message
