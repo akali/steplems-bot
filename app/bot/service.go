@@ -2,6 +2,7 @@ package bot
 
 import (
 	"fmt"
+
 	"github.com/akali/steplems-bot/app/commands"
 	"github.com/akali/steplems-bot/app/commands/help"
 	"github.com/akali/steplems-bot/app/database"
@@ -61,7 +62,7 @@ func (b *Bot) update(update tbot.Update) {
 
 	// Record the message
 	if err := b.Record(update.Message); err != nil {
-		log.Error.Println("unexpected error!", err)
+		log.Error.Println("unexpected error!", err.Error())
 	}
 
 	if name := update.Message.CommandWithAt(); len(name) > 0 {

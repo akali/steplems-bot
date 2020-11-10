@@ -20,3 +20,6 @@ coverage.txt
 
 # Required packages
 vendor
+
+# Do not send env vars
+.env
