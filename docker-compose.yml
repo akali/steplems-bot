@@ -1,26 +1,9 @@
 version: "3.0"
 
-volumes:
-  mongodb:
-    driver: local
-
 services:
-  mongodb:
-    container_name: sutepuremusu
-    image: mongo:latest
-    ports:
-      - 27019:27017
-    restart: always
-    env_file:
-      - .env
-    volumes:
-      - .docker-data/mongo:/data/db
   steplemsbot:
     container_name: steplemsbot
     build:
       context: ./
       dockerfile: Dockerfile
     env_file: .env
-    command: sh -c "/wait && /bin/steplemsbot"
-    depends_on:
-      - mongodb
