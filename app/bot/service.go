@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/akali/steplems-bot/app/commands"
-	"github.com/akali/steplems-bot/app/commands/help"
 	"github.com/akali/steplems-bot/app/database"
 	tbot "github.com/go-telegram-bot-api/telegram-bot-api"
 )
@@ -69,7 +68,6 @@ func (b *Bot) update(update tbot.Update) {
 		// Sending help message if the command by the given name wasn't found.
 		if callback, ok := b.commands.Get(commandName); !ok {
 			log.Warn.PrintT("command '{}' not found", commandName)
-			b.executeCommand(update, help.CommandCallback, help.CommandName)
 			return
 		} else {
 			b.executeCommand(update, callback, commandName)
