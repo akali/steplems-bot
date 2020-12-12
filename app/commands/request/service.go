@@ -2,6 +2,7 @@ package request
 
 import (
 	"fmt"
+	"github.com/akali/steplems-bot/app/bot"
 	"github.com/akali/steplems-bot/app/commands/request/arguments"
 	tbot "github.com/go-telegram-bot-api/telegram-bot-api"
 	"io/ioutil"
@@ -11,7 +12,7 @@ import (
 
 // PerformRequest creates and sends a new http request configured by the set
 // of arguments in the message.
-func PerformRequest(method string, bot *tbot.BotAPI, msg tbot.Update) error {
+func PerformRequest(method string, botAPI *tbot.BotAPI, msg tbot.Update) error {
 	commandArgs := msg.Message.CommandArguments()
 	splitArgs := strings.Split(commandArgs, " ")
 
@@ -47,9 +48,9 @@ func PerformRequest(method string, bot *tbot.BotAPI, msg tbot.Update) error {
 		text += "\n" + string(bodyBytes)
 	}
 
-	message := tbot.NewMessage(msg.Message.Chat.ID, text)
+	message := bot.NewMessageReply(msg.Message.Chat.ID, text, msg.Message.MessageID)
 
-	_, err = bot.Send(message)
+	_, err = botAPI.Send(message)
 
 	return err
 }

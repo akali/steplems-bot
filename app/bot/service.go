@@ -102,3 +102,12 @@ func (b *Bot) sendErrorMessage(chatID int64, err string) {
 		log.Error.Println("error trying to send an error message:", err)
 	}
 }
+
+// NewMessageReply creates a new Message with reply.
+//
+// chatID is where to send it, text is the message text, replyMessageID is to whom reply.
+func NewMessageReply(chatID int64, text string, replyMessageID int) tbot.MessageConfig {
+	message := tbot.NewMessage(chatID, text)
+	message.ReplyToMessageID = replyMessageID
+	return message
+}
