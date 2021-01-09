@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/akali/steplems-bot/app/commands"
-	"github.com/akali/steplems-bot/app/commands/help"
 	"github.com/akali/steplems-bot/app/database"
 	tbot "github.com/go-telegram-bot-api/telegram-bot-api"
 )
@@ -69,7 +68,6 @@ func (b *Bot) update(update tbot.Update) {
 		// Sending help message if the command by the given name wasn't found.
 		if callback, ok := b.commands.Get(commandName); !ok {
 			log.Warn.PrintT("command '{}' not found", commandName)
-			b.executeCommand(update, help.CommandCallback, help.CommandName)
 			return
 		} else {
 			b.executeCommand(update, callback, commandName)
@@ -103,4 +101,13 @@ func (b *Bot) sendErrorMessage(chatID int64, err string) {
 	if sendError != nil {
 		log.Error.Println("error trying to send an error message:", err)
 	}
+}
+
+// NewMessageReply creates a new Message with reply.
+//
+// chatID is where to send it, text is the message text, replyMessageID is to whom reply.
+func NewMessageReply(chatID int64, text string, replyMessageID int) tbot.MessageConfig {
+	message := tbot.NewMessage(chatID, text)
+	message.ReplyToMessageID = replyMessageID
+	return message
 }

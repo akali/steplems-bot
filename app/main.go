@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/akali/steplems-bot/app/bot"
 	"github.com/akali/steplems-bot/app/commands"
+	"github.com/akali/steplems-bot/app/commands/eval"
 	"github.com/akali/steplems-bot/app/commands/help"
 	"github.com/akali/steplems-bot/app/commands/request"
 	"github.com/akali/steplems-bot/app/config"
@@ -15,6 +16,7 @@ var (
 	// Mapping commands into a map to make command selection easier.
 	cmds = commands.NewCallbackMap(
 		help.Command,
+		eval.Command,
 		request.CommandGet,
 		request.CommandHead,
 		request.CommandPost,
