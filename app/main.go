@@ -5,6 +5,7 @@ import (
 	"github.com/akali/steplems-bot/app/commands"
 	"github.com/akali/steplems-bot/app/commands/eval"
 	"github.com/akali/steplems-bot/app/commands/help"
+	"github.com/akali/steplems-bot/app/commands/backup"
 	"github.com/akali/steplems-bot/app/commands/request"
 	"github.com/akali/steplems-bot/app/config"
 	"github.com/akali/steplems-bot/app/logger"
@@ -17,6 +18,7 @@ var (
 	cmds = commands.NewCallbackMap(
 		help.Command,
 		eval.Command,
+		backup.Command,
 		request.CommandGet,
 		request.CommandHead,
 		request.CommandPost,
