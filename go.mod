@@ -5,7 +5,6 @@ go 1.17
 require (
 	github.com/go-bongo/bongo v0.10.4
 	github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible
-	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/olehan/kek v0.1.1
 	github.com/stretchr/testify v1.7.0
 	go.mongodb.org/mongo-driver v1.4.2

@@ -129,10 +129,6 @@ func (b *Bot) sendErrorMessage(chatID int64, err string) {
 	}
 }
 
-func (b *Bot) ReplyWithVideo(message *tbot.Message) func() {
-	return func() {}
-}
-
 // NewMessageReply creates a new Message with reply.
 //
 // chatID is where to send it, text is the message text, replyMessageID is to whom reply.
