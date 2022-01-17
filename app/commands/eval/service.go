@@ -9,7 +9,7 @@ import (
 // CommandCallback is the callback of the "eval" command.
 func CommandCallback(botAPI *tbot.BotAPI, msg tbot.Update) error {
 	if rand.Intn(100) == 0 {
-		text := "вурвур гей"
+		text := "free helicopter rides"
 
 		res := bot.NewMessageReply(msg.Message.Chat.ID, text, msg.Message.MessageID)
 
