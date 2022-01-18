@@ -56,27 +56,19 @@ func (yt *Youtube) Match(text string) []string {
 func (yt *Youtube) chooseFormat(formats youtube.FormatList) *youtube.Format {
 	formats = formats.WithAudioChannels()
 
-	isFailedToFind := true
-	var chosenFormat *youtube.Format
-
 	for i := range formats {
 		for _, q := range allowedQuality {
 			for _, t := range allowedType {
 				if (formats[i].Quality == string(q) || formats[i].QualityLabel == string(q)) &&
 					strings.Contains(formats[i].MimeType, string(t)) {
-					isFailedToFind = false
-					chosenFormat = &formats[i]
 
-					break
+					return &formats[i]
 				}
 			}
 		}
 	}
-	if isFailedToFind {
-		chosenFormat = &formats[0]
-	}
 
-	return chosenFormat
+	return &formats[0]
 }
 
 func (yt *Youtube) downloadPerLink(
