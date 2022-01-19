@@ -27,7 +27,7 @@ func (b *Bot) Run(timeout int) error {
 	log.Succ.Println("successfully started update chan listener")
 
 	for update := range updates {
-		b.update(update)
+		go b.update(update)
 	}
 
 	return nil
