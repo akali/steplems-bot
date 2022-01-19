@@ -2,12 +2,13 @@ package database
 
 import (
 	"context"
+	"time"
+
 	"github.com/akali/steplems-bot/app/logger"
 	"github.com/go-bongo/bongo"
 	tbot "github.com/go-telegram-bot-api/telegram-bot-api"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"time"
 )
 
 var (
@@ -19,19 +20,25 @@ const (
 )
 
 type (
-	Database struct {
+	Database interface {
+		Init(updateTimeout time.Duration) (error, func())
+		SaveMessage(message *Message) error
+	}
+
+	DatabaseImpl struct {
 		client        *mongo.Client
 		Url           string
 		Database      string
 		updateTimeout time.Duration
 	}
-	Message struct {
+	DatabaseNoOp struct{}
+	Message      struct {
 		bongo.DocumentBase `bson:",inline"`
 		tbot.Message
 	}
 )
 
-func (d *Database) Init(updateTimeout time.Duration) (error, func()) {
+func (d *DatabaseImpl) Init(updateTimeout time.Duration) (error, func()) {
 	d.updateTimeout = updateTimeout
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -50,11 +57,19 @@ func (d *Database) Init(updateTimeout time.Duration) (error, func()) {
 	}
 }
 
-func (d *Database) SaveMessage(message *Message) error {
+func (d *DatabaseImpl) SaveMessage(message *Message) error {
 	ctx, cancel := context.WithTimeout(context.Background(), d.updateTimeout*time.Second)
 	defer cancel()
 	_, err := d.client.Database(d.Database).Collection(MessagesCollection).InsertOne(ctx, message)
 	return err
+}
+
+func (d *DatabaseNoOp) Init(updateTimeout time.Duration) (error, func()) {
+	return nil, nil
+}
+
+func (d *DatabaseNoOp) SaveMessage(message *Message) error {
+	return nil
 }
 
 //mongodb://localhost:27019

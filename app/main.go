@@ -1,14 +1,15 @@
 package main
 
 import (
-    "github.com/akali/steplems-bot/app/bot"
-    "github.com/akali/steplems-bot/app/commands"
-    "github.com/akali/steplems-bot/app/commands/eval"
-    "github.com/akali/steplems-bot/app/commands/help"
-    "github.com/akali/steplems-bot/app/commands/request"
-    "github.com/akali/steplems-bot/app/config"
-    "github.com/akali/steplems-bot/app/logger"
-    "time"
+	"time"
+
+	"github.com/akali/steplems-bot/app/bot"
+	"github.com/akali/steplems-bot/app/commands"
+	"github.com/akali/steplems-bot/app/commands/eval"
+	"github.com/akali/steplems-bot/app/commands/help"
+	"github.com/akali/steplems-bot/app/commands/request"
+	"github.com/akali/steplems-bot/app/config"
+	"github.com/akali/steplems-bot/app/logger"
 )
 
 var (
@@ -30,8 +31,10 @@ var (
 )
 
 func main() {
+	config.Init()
+
 	// Creating and setting up a new bot api client.
-	b, err := bot.NewBot(config.BotAPIToken, cmds, config.MongoConnectionString, config.MongoDatabaseName)
+	b, err := bot.NewBot(config.BotAPIToken, cmds, config.EnableMongo, config.MongoConnectionString, config.MongoDatabaseName)
 	if err != nil {
 		log.Panic.Println("error trying to initialize a new bot:", err)
 	}
