@@ -20,7 +20,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
-            cd ~/root/work/steplems-bot
+            cd /root/work/steplems-bot
             git pull origin master
             git status
             docker-compose up -d --build --remove-orphans
