@@ -2,9 +2,10 @@ package bot
 
 import (
 	"fmt"
-    "github.com/akali/steplems-bot/app/database"
-    "io/ioutil"
+	"io/ioutil"
 	"os"
+
+	"github.com/akali/steplems-bot/app/database"
 
 	"github.com/akali/steplems-bot/app/commands"
 	tbot "github.com/go-telegram-bot-api/telegram-bot-api"
@@ -55,12 +56,30 @@ func (b *Bot) Record(message *tbot.Message) error {
 		defer os.RemoveAll(folder)
 
 		filePaths, err := b.Youtube.Download(links, folder)
+		if err != nil {
+			log.Error.Println(err.Error())
+			// Let's try to reply to message with error message
+			v := tbot.NewMessage(message.Chat.ID, fmt.Sprintf("failed to process video: %s", err.Error()))
+			v.ReplyToMessageID = message.MessageID
+
+			if _, err := b.api.Send(v); err != nil {
+				log.Error.Println("failed to reply to message: ", err.Error())
+			}
+			return err
+		}
 		for _, filePath := range filePaths {
 			v := tbot.NewVideoUpload(message.Chat.ID, filePath)
 			v.ReplyToMessageID = message.MessageID
 
 			if _, err = b.api.Send(v); err != nil {
-				log.Error.Println(err)
+				log.Error.Println(err.Error())
+				// Let's try to reply to message with error message
+				v := tbot.NewMessage(message.Chat.ID, fmt.Sprintf("failed to process video: %s", err.Error()))
+				v.ReplyToMessageID = message.MessageID
+
+				if _, err := b.api.Send(v); err != nil {
+					log.Error.Println("failed to reply to message: ", err.Error())
+				}
 			}
 		}
 
