@@ -2,9 +2,11 @@ package bot
 
 import (
 	"fmt"
+    "github.com/akali/steplems-bot/app/database"
+    "io/ioutil"
+	"os"
 
 	"github.com/akali/steplems-bot/app/commands"
-	"github.com/akali/steplems-bot/app/database"
 	tbot "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
@@ -39,6 +41,30 @@ func (b *Bot) Record(message *tbot.Message) error {
 			return message.From.FirstName + " " + message.From.LastName
 		}
 	}())
+
+	links := b.Youtube.Match(message.Text)
+	if len(links) != 0 {
+		log.Info.PrintTKV(
+			"detected youtube short links of {{length}} length from {{user}}",
+			"length", len(links), "user", message.From.String())
+		folder, err := ioutil.TempDir("/tmp", "yt*")
+		if err != nil {
+			return err
+		}
+
+		defer os.RemoveAll(folder)
+
+		filePaths, err := b.Youtube.Download(links, folder)
+		for _, filePath := range filePaths {
+			v := tbot.NewVideoUpload(message.Chat.ID, filePath)
+			v.ReplyToMessageID = message.MessageID
+
+			if _, err = b.api.Send(v); err != nil {
+				log.Error.Println(err)
+			}
+		}
+
+	}
 
 	return b.Database.SaveMessage(&database.Message{
 		Message: *message,

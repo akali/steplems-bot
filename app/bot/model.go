@@ -4,6 +4,7 @@ import (
 	"github.com/akali/steplems-bot/app/commands"
 	"github.com/akali/steplems-bot/app/database"
 	"github.com/akali/steplems-bot/app/logger"
+	"github.com/akali/steplems-bot/app/youtube"
 	tbot "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
@@ -16,6 +17,7 @@ type (
 		api      *tbot.BotAPI
 		commands commands.CallbackMap
 		Database *database.Database
+		Youtube  *youtube.Youtube
 	}
 )
 
@@ -35,5 +37,5 @@ func NewBot(token string, commands commands.CallbackMap, url string, databaseNam
 		Database: databaseName,
 	}
 
-	return &Bot{api: api, commands: commands, Database: databaseConfig}, nil
+	return &Bot{api: api, commands: commands, Database: databaseConfig, Youtube: youtube.NewYoutube()}, nil
 }

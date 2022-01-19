@@ -1,14 +1,14 @@
 package main
 
 import (
-	"github.com/akali/steplems-bot/app/bot"
-	"github.com/akali/steplems-bot/app/commands"
-	"github.com/akali/steplems-bot/app/commands/eval"
-	"github.com/akali/steplems-bot/app/commands/help"
-	"github.com/akali/steplems-bot/app/commands/request"
-	"github.com/akali/steplems-bot/app/config"
-	"github.com/akali/steplems-bot/app/logger"
-	"time"
+    "github.com/akali/steplems-bot/app/bot"
+    "github.com/akali/steplems-bot/app/commands"
+    "github.com/akali/steplems-bot/app/commands/eval"
+    "github.com/akali/steplems-bot/app/commands/help"
+    "github.com/akali/steplems-bot/app/commands/request"
+    "github.com/akali/steplems-bot/app/config"
+    "github.com/akali/steplems-bot/app/logger"
+    "time"
 )
 
 var (
@@ -37,7 +37,6 @@ func main() {
 	}
 
 	err, _ = b.Database.Init(time.Duration(config.UpdateTimeout))
-
 	if err != nil {
 		log.Panic.Println("error trying to connect to mongo:", err.Error())
 	}
