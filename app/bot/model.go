@@ -16,7 +16,7 @@ type (
 		RecordMessageRepo
 		api      *tbot.BotAPI
 		commands commands.CallbackMap
-		Database *database.Database
+		Database database.Database
 		Youtube  *youtube.Youtube
 	}
 )
@@ -26,15 +26,21 @@ var (
 )
 
 // NewBot initializes bot api and returns a new *Bot.
-func NewBot(token string, commands commands.CallbackMap, url string, databaseName string) (*Bot, error) {
+func NewBot(token string, commands commands.CallbackMap, enableMongo bool, url string, databaseName string) (*Bot, error) {
 	api, err := tbot.NewBotAPI(token)
 	if err != nil {
 		return nil, err
 	}
 
-	databaseConfig := &database.Database{
-		Url:      url,
-		Database: databaseName,
+	var databaseConfig database.Database
+
+	if enableMongo {
+		databaseConfig = &database.DatabaseImpl{
+			Url:      url,
+			Database: databaseName,
+		}
+	} else {
+		databaseConfig = &database.DatabaseNoOp{}
 	}
 
 	return &Bot{api: api, commands: commands, Database: databaseConfig, Youtube: youtube.NewYoutube()}, nil

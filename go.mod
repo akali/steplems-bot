@@ -42,5 +42,6 @@ require (
 	github.com/smartystreets/assertions v1.2.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
+	golang.org/x/tools/gopls v0.7.4 // indirect
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22 // indirect
 )
