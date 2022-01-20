@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	tbot "github.com/go-telegram-bot-api/telegram-bot-api"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/kkdai/youtube/v2"
 )
 
@@ -116,6 +117,7 @@ func (ytm *YoutubeModule) MessageUpdate(message *tbot.Message) error {
 			}
 			return err
 		}
+		var filesErrs error
 		for _, filePath := range filePaths {
 			v := tbot.NewVideoUpload(message.Chat.ID, filePath)
 			v.ReplyToMessageID = message.MessageID
@@ -128,9 +130,11 @@ func (ytm *YoutubeModule) MessageUpdate(message *tbot.Message) error {
 
 				if _, err := ytm.sendMessageRepo.SendMessage(v); err != nil {
 					log.Error.Println("failed to reply to message: ", err.Error())
+					filesErrs = multierror.Append(filesErrs, err)
 				}
 			}
 		}
+		return filesErrs
 	}
 	return nil
 }
