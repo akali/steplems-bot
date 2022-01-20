@@ -1,10 +1,12 @@
 package bot
 
 import (
+	"github.com/akali/steplems-bot/app/bot/public"
+	"github.com/akali/steplems-bot/app/botmodule"
+	"github.com/akali/steplems-bot/app/botmodule/youtube"
 	"github.com/akali/steplems-bot/app/commands"
 	"github.com/akali/steplems-bot/app/database"
 	"github.com/akali/steplems-bot/app/logger"
-	"github.com/akali/steplems-bot/app/youtube"
 	tbot "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
@@ -14,10 +16,11 @@ type (
 	Bot struct {
 		RunBotRepo
 		RecordMessageRepo
+		public.SendMessageRepo
 		api      *tbot.BotAPI
 		commands commands.CallbackMap
 		Database database.Database
-		Youtube  *youtube.Youtube
+		Modules  []botmodule.Module
 	}
 )
 
@@ -43,5 +46,12 @@ func NewBot(token string, commands commands.CallbackMap, enableMongo bool, url s
 		databaseConfig = &database.DatabaseNoOp{}
 	}
 
-	return &Bot{api: api, commands: commands, Database: databaseConfig, Youtube: youtube.NewYoutube()}, nil
+	b := &Bot{
+		api:      api,
+		commands: commands,
+		Database: databaseConfig,
+	}
+	b.RegisterModule(youtube.NewModule(b))
+
+	return b, nil
 }

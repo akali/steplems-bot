@@ -2,13 +2,13 @@ package bot
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 
 	"github.com/akali/steplems-bot/app/database"
 
+	"github.com/akali/steplems-bot/app/botmodule"
 	"github.com/akali/steplems-bot/app/commands"
 	tbot "github.com/go-telegram-bot-api/telegram-bot-api"
+	multierror "github.com/hashicorp/go-multierror"
 )
 
 // Run starts listening to bot api and waits for new messages.
@@ -34,56 +34,14 @@ func (b *Bot) Run(timeout int) error {
 	return nil
 }
 
-func (b *Bot) Record(message *tbot.Message) error {
-	log.Info.PrintTKV("Recording message from {{from}}", "from", func() string {
-		if len(message.From.UserName) > 0 {
-			return message.From.UserName
-		} else {
-			return message.From.FirstName + " " + message.From.LastName
+func (b *Bot) notifyModules(message *tbot.Message) error {
+	var moduleErrs error
+	for _, module := range b.Modules {
+		if err := module.MessageUpdate(message); err != nil {
+			moduleErrs = multierror.Append(moduleErrs, err)
 		}
-	}())
-
-	links := b.Youtube.Match(message.Text)
-	if len(links) != 0 {
-		log.Info.PrintTKV(
-			"detected youtube short links of {{length}} length from {{user}}",
-			"length", len(links), "user", message.From.String())
-		folder, err := ioutil.TempDir("/tmp", "yt*")
-		if err != nil {
-			return err
-		}
-
-		defer os.RemoveAll(folder)
-
-		filePaths, err := b.Youtube.Download(links, folder)
-		if err != nil {
-			log.Error.Println(err.Error())
-			// Let's try to reply to message with error message
-			v := tbot.NewMessage(message.Chat.ID, fmt.Sprintf("failed to process video: %s", err.Error()))
-			v.ReplyToMessageID = message.MessageID
-
-			if _, err := b.api.Send(v); err != nil {
-				log.Error.Println("failed to reply to message: ", err.Error())
-			}
-			return err
-		}
-		for _, filePath := range filePaths {
-			v := tbot.NewVideoUpload(message.Chat.ID, filePath)
-			v.ReplyToMessageID = message.MessageID
-
-			if _, err = b.api.Send(v); err != nil {
-				log.Error.Println(err.Error())
-				// Let's try to reply to message with error message
-				v := tbot.NewMessage(message.Chat.ID, fmt.Sprintf("failed to process video: %s", err.Error()))
-				v.ReplyToMessageID = message.MessageID
-
-				if _, err := b.api.Send(v); err != nil {
-					log.Error.Println("failed to reply to message: ", err.Error())
-				}
-			}
-		}
-
 	}
+	return moduleErrs
 
 	return b.Database.SaveMessage(&database.Message{
 		Message: *message,
@@ -102,8 +60,8 @@ func (b *Bot) update(update tbot.Update) {
 		"text", update.Message.Text,
 	)
 
-	// Record the message
-	if err := b.Record(update.Message); err != nil {
+	// Run through errors
+	if err := b.notifyModules(update.Message); err != nil {
 		log.Error.Println("unexpected error!", err.Error())
 	}
 
@@ -148,6 +106,14 @@ func (b *Bot) sendErrorMessage(chatID int64, err string) {
 	}
 }
 
+func (b *Bot) RegisterModule(module botmodule.Module) error {
+	if module == nil {
+		return fmt.Errorf("module should not be nil")
+	}
+	b.Modules = append(b.Modules, module)
+	return nil
+}
+
 // NewMessageReply creates a new Message with reply.
 //
 // chatID is where to send it, text is the message text, replyMessageID is to whom reply.
@@ -155,4 +121,8 @@ func NewMessageReply(chatID int64, text string, replyMessageID int) tbot.Message
 	message := tbot.NewMessage(chatID, text)
 	message.ReplyToMessageID = replyMessageID
 	return message
+}
+
+func (b *Bot) SendMessage(message tbot.Chattable) (tbot.Message, error) {
+	return b.api.Send(message)
 }
