@@ -104,6 +104,12 @@ func (ytm *YoutubeModule) MessageUpdate(message *tbot.Message) error {
 			loadingMsg = &newLoadingMsg
 		}
 
+		defer func() {
+			if err := ytm.botApiRepo.DeleteMessage(loadingMsg.Chat.ID, loadingMsg.MessageID); err != nil {
+				log.Error.Println(err.Error())
+			}
+		}()
+
 		log.Info.PrintTKV(
 			"detected youtube short links of {{length}} length from {{user}}",
 			"length", len(links), "user", message.From.String())
@@ -124,10 +130,6 @@ func (ytm *YoutubeModule) MessageUpdate(message *tbot.Message) error {
 
 			if _, err := ytm.botApiRepo.SendMessage(v); err != nil {
 				log.Error.Println("failed to reply to message: ", err.Error())
-			} else {
-				if err := ytm.botApiRepo.DeleteMessage(loadingMsg.Chat.ID, loadingMsg.MessageID); err != nil {
-					log.Error.Println(err.Error())
-				}
 			}
 			return err
 		}
@@ -148,10 +150,6 @@ func (ytm *YoutubeModule) MessageUpdate(message *tbot.Message) error {
 						log.Error.Println(err.Error())
 					}
 					filesErrs = multierror.Append(filesErrs, err)
-				} else {
-					if err := ytm.botApiRepo.DeleteMessage(loadingMsg.Chat.ID, loadingMsg.MessageID); err != nil {
-						log.Error.Println(err.Error())
-					}
 				}
 			}
 		}
