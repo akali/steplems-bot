@@ -16,7 +16,7 @@ type (
 	Bot struct {
 		RunBotRepo
 		RecordMessageRepo
-		public.SendMessageRepo
+		public.BotApiRepo
 		api      *tbot.BotAPI
 		commands commands.CallbackMap
 		Database database.Database

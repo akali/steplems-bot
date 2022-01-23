@@ -120,3 +120,13 @@ func NewMessageReply(chatID int64, text string, replyMessageID int) tbot.Message
 func (b *Bot) SendMessage(message tbot.Chattable) (tbot.Message, error) {
 	return b.api.Send(message)
 }
+
+func (b *Bot) DeleteMessage(chatID int64, messageID int) error {
+	if _, err := b.api.DeleteMessage(tbot.DeleteMessageConfig{
+		ChatID:    chatID,
+		MessageID: messageID,
+	}); err != nil {
+		return err
+	}
+	return nil
+}

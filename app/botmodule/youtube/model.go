@@ -10,9 +10,9 @@ import (
 
 type (
 	YoutubeModule struct {
-		pattern         *regexp.Regexp
-		client          youtube.Client
-		sendMessageRepo public.SendMessageRepo
+		pattern    *regexp.Regexp
+		client     youtube.Client
+		botApiRepo public.BotApiRepo
 	}
 
 	VideoType   string
@@ -39,12 +39,12 @@ var (
 	allowedType    = []VideoType{MP4, MKV, WEBM}
 )
 
-func NewModule(sendMessageRepo public.SendMessageRepo) *YoutubeModule {
+func NewModule(botApiRepo public.BotApiRepo) *YoutubeModule {
 	r := regexp.MustCompile(ytLinkRegex)
 
 	return &YoutubeModule{
-		pattern:         r,
-		client:          youtube.Client{},
-		sendMessageRepo: sendMessageRepo,
+		pattern:    r,
+		client:     youtube.Client{},
+		botApiRepo: botApiRepo,
 	}
 }
