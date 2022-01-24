@@ -3,8 +3,6 @@ package bot
 import (
 	"fmt"
 
-	"github.com/akali/steplems-bot/app/database"
-
 	"github.com/akali/steplems-bot/app/botmodule"
 	"github.com/akali/steplems-bot/app/commands"
 	tbot "github.com/go-telegram-bot-api/telegram-bot-api"
@@ -42,10 +40,6 @@ func (b *Bot) notifyModules(message *tbot.Message) error {
 		}
 	}
 	return moduleErrs
-
-	return b.Database.SaveMessage(&database.Message{
-		Message: *message,
-	})
 }
 
 func (b *Bot) update(update tbot.Update) {
@@ -125,4 +119,14 @@ func NewMessageReply(chatID int64, text string, replyMessageID int) tbot.Message
 
 func (b *Bot) SendMessage(message tbot.Chattable) (tbot.Message, error) {
 	return b.api.Send(message)
+}
+
+func (b *Bot) DeleteMessage(chatID int64, messageID int) error {
+	if _, err := b.api.DeleteMessage(tbot.DeleteMessageConfig{
+		ChatID:    chatID,
+		MessageID: messageID,
+	}); err != nil {
+		return err
+	}
+	return nil
 }
