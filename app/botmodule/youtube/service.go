@@ -101,12 +101,13 @@ func (ytm *YoutubeModule) MessageUpdate(message *tbot.Message) error {
 		var loadingMsg *tbot.Message = nil
 		if newLoadingMsg, err := ytm.botApiRepo.SendMessage(loadingMsgCfg); err != nil {
 			log.Error.Println("сan not reply loading message to the message: ", err.Error())
+		} else {
 			loadingMsg = &newLoadingMsg
 		}
 
 		defer func() {
 			if err := ytm.botApiRepo.DeleteMessage(loadingMsg.Chat.ID, loadingMsg.MessageID); err != nil {
-				log.Error.Println(err.Error())
+				log.Error.PrintT("failed to remove message in Chat ", loadingMsg.Chat, " with links ", links, ", error: ", err.Error())
 			}
 		}()
 
