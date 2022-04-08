@@ -94,10 +94,27 @@ func (yt *YoutubeModule) Download(links []string, folder string) ([]string, erro
 
 func (ytm *YoutubeModule) MessageUpdate(message *tbot.Message) error {
 	links := ytm.Match(message.Text)
+
 	if len(links) != 0 {
+		loadingMsgCfg := tbot.NewMessage(message.Chat.ID, "loading...")
+		loadingMsgCfg.ReplyToMessageID = message.MessageID
+		var loadingMsg *tbot.Message = nil
+		if newLoadingMsg, err := ytm.botApiRepo.SendMessage(loadingMsgCfg); err != nil {
+			log.Error.Println("сan not reply loading message to the message: ", err.Error())
+		} else {
+			loadingMsg = &newLoadingMsg
+		}
+
+		defer func() {
+			if err := ytm.botApiRepo.DeleteMessage(loadingMsg.Chat.ID, loadingMsg.MessageID); err != nil {
+				log.Error.PrintT("failed to remove message in Chat ", loadingMsg.Chat, " with links ", links, ", error: ", err.Error())
+			}
+		}()
+
 		log.Info.PrintTKV(
 			"detected youtube short links of {{length}} length from {{user}}",
 			"length", len(links), "user", message.From.String())
+
 		folder, err := ioutil.TempDir("/tmp", "yt*")
 		if err != nil {
 			return err
@@ -112,7 +129,7 @@ func (ytm *YoutubeModule) MessageUpdate(message *tbot.Message) error {
 			v := tbot.NewMessage(message.Chat.ID, fmt.Sprintf("failed to process video: %s", err.Error()))
 			v.ReplyToMessageID = message.MessageID
 
-			if _, err := ytm.sendMessageRepo.SendMessage(v); err != nil {
+			if _, err := ytm.botApiRepo.SendMessage(v); err != nil {
 				log.Error.Println("failed to reply to message: ", err.Error())
 			}
 			return err
@@ -122,14 +139,17 @@ func (ytm *YoutubeModule) MessageUpdate(message *tbot.Message) error {
 			v := tbot.NewVideoUpload(message.Chat.ID, filePath)
 			v.ReplyToMessageID = message.MessageID
 
-			if _, err = ytm.sendMessageRepo.SendMessage(v); err != nil {
+			if _, err = ytm.botApiRepo.SendMessage(v); err != nil {
 				log.Error.Println(err.Error())
 				// Let's try to reply to message with error message
 				v := tbot.NewMessage(message.Chat.ID, fmt.Sprintf("failed to process video: %s", err.Error()))
 				v.ReplyToMessageID = message.MessageID
 
-				if _, err := ytm.sendMessageRepo.SendMessage(v); err != nil {
+				if _, err := ytm.botApiRepo.SendMessage(v); err != nil {
 					log.Error.Println("failed to reply to message: ", err.Error())
+					if err := ytm.botApiRepo.DeleteMessage(loadingMsg.Chat.ID, loadingMsg.MessageID); err != nil {
+						log.Error.Println(err.Error())
+					}
 					filesErrs = multierror.Append(filesErrs, err)
 				}
 			}
