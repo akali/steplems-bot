@@ -15,8 +15,16 @@ type (
 		botApiRepo public.BotApiRepo
 	}
 
+	YoutubeMessage struct {
+		Title, Link, Path string
+	}
+
 	VideoType   string
 	QualityType string
+)
+
+const (
+	RETRY_TIMES = 5
 )
 
 const (
