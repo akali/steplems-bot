@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	tbot "github.com/go-telegram-bot-api/telegram-bot-api"
 	multierror "github.com/hashicorp/go-multierror"
@@ -15,6 +16,16 @@ import (
 
 func (yt *YoutubeModule) Match(text string) []string {
 	return yt.pattern.FindAllString(text, -1)
+}
+
+func (yt *YoutubeModule) retryIfErr(f func() error) {
+	for i := 1; i <= RETRY_TIMES; i++ {
+		if err := f(); err != nil {
+			time.Sleep(time.Second * time.Duration(2<<i))
+		} else {
+			return
+		}
+	}
 }
 
 func (yt *YoutubeModule) chooseFormat(formats youtube.FormatList) *youtube.Format {
@@ -33,6 +44,20 @@ func (yt *YoutubeModule) chooseFormat(formats youtube.FormatList) *youtube.Forma
 	}
 
 	return &formats[0]
+}
+
+func (yt *YoutubeModule) downloadPerLinkBackedOff(
+	v *youtube.Video,
+	format *youtube.Format,
+	folder string,
+) (s string, err error) {
+	yt.retryIfErr(func() error {
+		s, err = yt.downloadPerLink(v, format, folder)
+
+		return err
+	})
+
+	return
 }
 
 func (yt *YoutubeModule) downloadPerLink(
@@ -68,8 +93,22 @@ func (yt *YoutubeModule) downloadPerLink(
 	return filename, nil
 }
 
-func (yt *YoutubeModule) Download(links []string, folder string) ([]string, error) {
-	paths := make([]string, 0)
+func (m *YoutubeMessage) FormCaption() string {
+	b := strings.Builder{}
+
+	b.WriteRune('*')
+	b.WriteString(m.Title)
+	b.WriteRune('*')
+
+	b.WriteString("\n\n")
+	b.WriteString(m.Link)
+
+	return b.String()
+}
+
+func (yt *YoutubeModule) Download(links []string, folder string) ([]YoutubeMessage, error) {
+	msgs := make([]YoutubeMessage, 0)
+
 	for _, l := range links {
 		v, err := yt.client.GetVideo(l)
 		if err != nil {
@@ -79,23 +118,26 @@ func (yt *YoutubeModule) Download(links []string, folder string) ([]string, erro
 		}
 
 		chosenFormat := yt.chooseFormat(v.Formats)
-		filename, err := yt.downloadPerLink(v, chosenFormat, folder)
+		filename, err := yt.downloadPerLinkBackedOff(v, chosenFormat, folder)
 		if err != nil {
 			return nil, err
 		}
 
 		// there has to be ffmpeg stuff
 
-		paths = append(paths, filename)
+		msgs = append(msgs, YoutubeMessage{
+			Link:  l,
+			Title: v.Title,
+			Path:  filename})
 	}
 
-	return paths, nil
+	return msgs, nil
 }
 
 func (ytm *YoutubeModule) MessageUpdate(message *tbot.Message) error {
 	links := ytm.Match(message.Text)
 
-	if len(links) != 0 {
+	if len(links) != 0 && !message.From.IsBot {
 		loadingMsgCfg := tbot.NewMessage(message.Chat.ID, "loading...")
 		loadingMsgCfg.ReplyToMessageID = message.MessageID
 		var loadingMsg *tbot.Message = nil
@@ -122,7 +164,7 @@ func (ytm *YoutubeModule) MessageUpdate(message *tbot.Message) error {
 
 		defer os.RemoveAll(folder)
 
-		filePaths, err := ytm.Download(links, folder)
+		yms, err := ytm.Download(links, folder)
 		if err != nil {
 			log.Error.Println(err.Error())
 			// Let's try to reply to message with error message
@@ -135,8 +177,10 @@ func (ytm *YoutubeModule) MessageUpdate(message *tbot.Message) error {
 			return err
 		}
 		var filesErrs error
-		for _, filePath := range filePaths {
-			v := tbot.NewVideoUpload(message.Chat.ID, filePath)
+		for _, ym := range yms {
+			v := tbot.NewVideoUpload(message.Chat.ID, ym.Path)
+			v.Caption = ym.FormCaption()
+			v.ParseMode = tbot.ModeMarkdown
 			v.ReplyToMessageID = message.MessageID
 
 			if _, err = ytm.botApiRepo.SendMessage(v); err != nil {
