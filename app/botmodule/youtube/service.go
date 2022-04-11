@@ -93,16 +93,36 @@ func (yt *YoutubeModule) downloadPerLink(
 	return filename, nil
 }
 
+func (m *YoutubeMessage) SanitizeTitle() {
+	m.Title = strings.Replace(
+		strings.Replace(
+			strings.Replace(
+				strings.Replace(
+					strings.Replace(
+						strings.Replace(
+							strings.Replace(m.Title, "*", "\\*", -1),
+							"_", "\\_", -1),
+						"~", "\\~", -1),
+					"`", "\\`", -1),
+				"|", "\\|", -1),
+			"[", "\\[", -1),
+		"]", "\\]", -1)
+
+}
+
 func (m *YoutubeMessage) FormCaption() string {
+	m.SanitizeTitle()
+
 	b := strings.Builder{}
 
 	b.WriteRune('*')
 	b.WriteString(m.Title)
 	b.WriteRune('*')
 
-	b.WriteString("\n\n")
+	b.WriteString("\n\n[link | сілтеме]")
+	b.WriteRune('(')
 	b.WriteString(m.Link)
-
+	b.WriteRune(')')
 	return b.String()
 }
 
