@@ -93,12 +93,6 @@ func (yt *YoutubeModule) downloadPerLink(
 	return filename, nil
 }
 
-func (m *YoutubeMessage) trimTitle() {
-	if len(m.Title) > 100 {
-		m.Title = m.Title[:97] + "..."
-	}
-}
-
 func (m *YoutubeMessage) FormCaption() string {
 	b := strings.Builder{}
 
