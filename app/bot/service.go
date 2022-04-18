@@ -32,20 +32,29 @@ func (b *Bot) Run(timeout int) error {
 	return nil
 }
 
-func (b *Bot) notifyModules(message *tbot.Message) error {
-	var moduleErrs error
+func (b *Bot) notifyModules(update *tbot.Update) error {
+	var moduleErrs *multierror.Error
 	for _, module := range b.Modules {
-		if err := module.MessageUpdate(message); err != nil {
-			moduleErrs = multierror.Append(moduleErrs, err)
+		if msg := update.Message; msg != nil {
+			moduleErrs = multierror.Append(moduleErrs, module.MessageUpdate(msg))
+		}
+		if callback := update.CallbackQuery; callback != nil {
+			callback.Message.Text = update.CallbackQuery.Data
+			moduleErrs = multierror.Append(moduleErrs, module.MessageUpdate(callback.Message))
 		}
 	}
-	return moduleErrs
+	return moduleErrs.ErrorOrNil()
 }
 
 func (b *Bot) update(update tbot.Update) {
 	// Ignore any non-Message Updates.
-	if update.Message == nil {
+	if update.Message == nil && update.CallbackQuery == nil {
 		return
+	}
+
+	if update.Message == nil && update.CallbackQuery != nil {
+		update.Message = update.CallbackQuery.Message
+		update.Message.Text = update.CallbackQuery.Data
 	}
 
 	log.Info.PrintTKV("[{{update_id}}] {{username}}: {{text}}",
@@ -55,7 +64,7 @@ func (b *Bot) update(update tbot.Update) {
 	)
 
 	// Run through errors
-	if err := b.notifyModules(update.Message); err != nil {
+	if err := b.notifyModules(&update); err != nil {
 		log.Error.Println("unexpected error!", err.Error())
 	}
 

@@ -52,6 +52,7 @@ func NewBot(token string, commands commands.CallbackMap, enableMongo bool, url s
 		Database: databaseConfig,
 	}
 	b.RegisterModule(youtube.NewModule(b))
+	b.RegisterModule(youtube.NewModuleFull(b))
 
 	return b, nil
 }
