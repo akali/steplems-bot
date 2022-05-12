@@ -20,6 +20,13 @@ const (
 	MongoConnectionStringEnv = "MONGO_CONNECTION_STRING"
 	// MongoDatabaseNameEnv is env var key for database name in mongodb.
 	MongoDatabaseNameEnv = "MONGO_DATABASE_NAME"
+
+	// SpotifyClientId is env var key for spotify token.
+	SpotifyClientIdEnv = "SPOTIFY_CLIENT_ID"
+	// SpotifyClientId is env var key for spotify token.
+	SpotifyClientSecretEnv = "SPOTIFY_CLIENT_SECRET"
+	// SpotifyAccountFileEnv is env var key for spotify accounts storage.
+	SpotifyAccountFileEnv = "SPOTIFY_ACCOUNT_FILE"
 )
 
 var (
@@ -35,6 +42,15 @@ var (
 	MongoConnectionString = os.Getenv(MongoConnectionStringEnv)
 	// MongoDatabaseName is database name in mongodb.
 	MongoDatabaseName = os.Getenv(MongoDatabaseNameEnv)
+
+	// SpotifyClientId is ClientID key to Spotify.
+	SpotifyClientId = os.Getenv(SpotifyClientIdEnv)
+
+	// SpotifyClientSecret is ClientSecret key to Spotify.
+	SpotifyClientSecret = os.Getenv(SpotifyClientSecretEnv)
+
+	// SpotifyAccountFile is a path to Spotify accounts storage file.
+	SpotifyAccountFile = os.Getenv(SpotifyAccountFileEnv)
 )
 
 // Init initializes env variables.
