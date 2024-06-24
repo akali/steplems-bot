@@ -13,6 +13,7 @@ type (
 		pattern    *regexp.Regexp
 		client     youtube.Client
 		botApiRepo public.BotApiRepo
+		askToDownload bool
 	}
 
 	YoutubeMessage struct {
@@ -40,19 +41,34 @@ const (
 	WEBM VideoType = "video/webm"
 )
 
+const (
+	downloadCommand = "/ytdl" 
+)
+
 var (
-	ytLinkRegex    = "(((?:https?:)?\\/\\/)?((?:www|m)\\.)?((?:youtube\\.com))(\\/(shorts\\/))([\\w\\-]+)(\\S+)?)"
+	ytShortsLinkRegex    = "(((?:https?:)?\\/\\/)?((?:www|m)\\.)?((?:youtube\\.com))(\\/(shorts\\/))([\\w\\-]+)(\\S+)?)"
+	ytLinkRegex    = `(?m)(((?:https?:)?//)?((?:www|m).)?(((?:youtube\.com)/watch\?v=([\w]+)*))|(((?:https?:)?//)?((?:www|m).)?((?:youtu\.be/)([\w]+)*)))`
 	log            = logger.Factory.NewLogger("youtube")
 	allowedQuality = []QualityType{HD, HD720, HD1080, MEDIUM}
 	allowedType    = []VideoType{MP4, MKV, WEBM}
+
+	rShorts = regexp.MustCompile(ytShortsLinkRegex)
+	rFull = regexp.MustCompile(ytLinkRegex)
 )
 
 func NewModule(botApiRepo public.BotApiRepo) *YoutubeModule {
-	r := regexp.MustCompile(ytLinkRegex)
-
 	return &YoutubeModule{
-		pattern:    r,
+		pattern:    rShorts,
 		client:     youtube.Client{},
 		botApiRepo: botApiRepo,
+	}
+}
+
+func NewModuleFull(botApiRepo public.BotApiRepo) *YoutubeModule {
+	return &YoutubeModule{
+		pattern:    rFull,
+		client:     youtube.Client{},
+		botApiRepo: botApiRepo,
+		askToDownload: true,
 	}
 }

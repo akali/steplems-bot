@@ -156,36 +156,88 @@ func (yt *YoutubeModule) Download(links []string, folder string) ([]YoutubeMessa
 
 func (ytm *YoutubeModule) MessageUpdate(message *tbot.Message) error {
 	links := ytm.Match(message.Text)
+	matches := len(links) > 0
 
-	if len(links) != 0 && !message.From.IsBot {
-		loadingMsgCfg := tbot.NewMessage(message.Chat.ID, "loading...")
-		loadingMsgCfg.ReplyToMessageID = message.MessageID
-		var loadingMsg *tbot.Message = nil
-		if newLoadingMsg, err := ytm.botApiRepo.SendMessage(loadingMsgCfg); err != nil {
-			log.Error.Println("сan not reply loading message to the message: ", err.Error())
-		} else {
-			loadingMsg = &newLoadingMsg
+	log.Info.Println("MessageUpdate ", message.Text, " ", links, " ", strings.HasPrefix(message.Text, downloadCommand))
+
+	if !matches {
+		// Nothing to do here.
+		return nil
+	}
+
+	if strings.HasPrefix(message.Text, downloadCommand) {
+		if err := ytm.botApiRepo.DeleteMessage(message.Chat.ID, message.MessageID); err != nil {
+			log.Error.PrintT("failed to remove message in Chat ", message.Chat, " with links ", links, ", error: ", err.Error())
 		}
+		return ytm.download(message, links)
+	}
 
-		defer func() {
-			if err := ytm.botApiRepo.DeleteMessage(loadingMsg.Chat.ID, loadingMsg.MessageID); err != nil {
-				log.Error.PrintT("failed to remove message in Chat ", loadingMsg.Chat, " with links ", links, ", error: ", err.Error())
-			}
-		}()
+	if ytm.askToDownload {
+		promptMsgCfg := tbot.NewMessage(message.Chat.ID, "wanna download it?")
+		promptMsgCfg.ReplyToMessageID = message.MessageID
 
-		log.Info.PrintTKV(
-			"detected youtube short links of {{length}} length from {{user}}",
-			"length", len(links), "user", message.From.String())
-
-		folder, err := ioutil.TempDir("/tmp", "yt*")
-		if err != nil {
+		promptMsgCfg.ReplyMarkup = tbot.NewInlineKeyboardMarkup(
+			tbot.NewInlineKeyboardRow(
+				tbot.NewInlineKeyboardButtonData("Yes", fmt.Sprintf("%s %s", downloadCommand, links[0])),
+				tbot.NewInlineKeyboardButtonData("No", "-"),
+			),
+		)
+		if _, err := ytm.botApiRepo.SendMessage(promptMsgCfg); err != nil {
+			log.Error.Println("can not reply prompt message to the message: ", err.Error())
 			return err
 		}
+		return nil
+	}
+	return ytm.download(message, links)
+}
 
-		defer os.RemoveAll(folder)
+func (ytm *YoutubeModule) download(message *tbot.Message, links []string) error {
+	loadingMsgCfg := tbot.NewMessage(message.Chat.ID, "loading...")
+	loadingMsgCfg.ReplyToMessageID = message.MessageID
+	var loadingMsg *tbot.Message = nil
+	if newLoadingMsg, err := ytm.botApiRepo.SendMessage(loadingMsgCfg); err != nil {
+		log.Error.Println("сan not reply loading message to the message: ", err.Error())
+	} else {
+		loadingMsg = &newLoadingMsg
+	}
 
-		yms, err := ytm.Download(links, folder)
-		if err != nil {
+	defer func() {
+		if err := ytm.botApiRepo.DeleteMessage(loadingMsg.Chat.ID, loadingMsg.MessageID); err != nil {
+			log.Error.PrintT("failed to remove message in Chat ", loadingMsg.Chat, " with links ", links, ", error: ", err.Error())
+		}
+	}()
+
+	log.Info.PrintTKV(
+		"detected youtube short links of {{length}} length from {{user}}",
+		"length", len(links), "user", message.From.String())
+
+	folder, err := ioutil.TempDir("/tmp", "yt*")
+	if err != nil {
+		return err
+	}
+
+	defer os.RemoveAll(folder)
+
+	yms, err := ytm.Download(links, folder)
+	if err != nil {
+		log.Error.Println(err.Error())
+		// Let's try to reply to message with error message
+		v := tbot.NewMessage(message.Chat.ID, fmt.Sprintf("failed to process video: %s", err.Error()))
+		v.ReplyToMessageID = message.MessageID
+
+		if _, err := ytm.botApiRepo.SendMessage(v); err != nil {
+			log.Error.Println("failed to reply to message: ", err.Error())
+		}
+		return err
+	}
+	var filesErrs error
+	for _, ym := range yms {
+		v := tbot.NewVideoUpload(message.Chat.ID, ym.Path)
+		v.Caption = ym.FormCaption()
+		v.ParseMode = tbot.ModeMarkdown
+		v.ReplyToMessageID = message.MessageID
+
+		if _, err = ytm.botApiRepo.SendMessage(v); err != nil {
 			log.Error.Println(err.Error())
 			// Let's try to reply to message with error message
 			v := tbot.NewMessage(message.Chat.ID, fmt.Sprintf("failed to process video: %s", err.Error()))
@@ -193,32 +245,12 @@ func (ytm *YoutubeModule) MessageUpdate(message *tbot.Message) error {
 
 			if _, err := ytm.botApiRepo.SendMessage(v); err != nil {
 				log.Error.Println("failed to reply to message: ", err.Error())
-			}
-			return err
-		}
-		var filesErrs error
-		for _, ym := range yms {
-			v := tbot.NewVideoUpload(message.Chat.ID, ym.Path)
-			v.Caption = ym.FormCaption()
-			v.ParseMode = tbot.ModeMarkdown
-			v.ReplyToMessageID = message.MessageID
-
-			if _, err = ytm.botApiRepo.SendMessage(v); err != nil {
-				log.Error.Println(err.Error())
-				// Let's try to reply to message with error message
-				v := tbot.NewMessage(message.Chat.ID, fmt.Sprintf("failed to process video: %s", err.Error()))
-				v.ReplyToMessageID = message.MessageID
-
-				if _, err := ytm.botApiRepo.SendMessage(v); err != nil {
-					log.Error.Println("failed to reply to message: ", err.Error())
-					if err := ytm.botApiRepo.DeleteMessage(loadingMsg.Chat.ID, loadingMsg.MessageID); err != nil {
-						log.Error.Println(err.Error())
-					}
-					filesErrs = multierror.Append(filesErrs, err)
+				if err := ytm.botApiRepo.DeleteMessage(loadingMsg.Chat.ID, loadingMsg.MessageID); err != nil {
+					log.Error.Println(err.Error())
 				}
+				filesErrs = multierror.Append(filesErrs, err)
 			}
 		}
-		return filesErrs
 	}
-	return nil
+	return filesErrs
 }
