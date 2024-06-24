@@ -1,6 +1,6 @@
 module github.com/akali/steplems-bot
 
-go 1.17
+go 1.18
 
 require (
 	github.com/go-bongo/bongo v0.10.4
@@ -9,6 +9,8 @@ require (
 	github.com/stretchr/testify v1.7.0
 	go.mongodb.org/mongo-driver v1.8.2
 )
+
+require github.com/spf13/afero v1.8.2 // indirect
 
 require (
 	github.com/bitly/go-simplejson v0.5.0 // indirect
